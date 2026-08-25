@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Resident Services</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --accent:#1F6F6B;
+    --accent-ink:#ffffff;
+    --accent-soft:rgba(31,111,107,.10);
+    --accent-line:rgba(31,111,107,.28);
+
+    --ink:#15201F;
+    --ink-2:#4A5754;
+    --ink-3:#7C8987;
+    --line:#DFE4E2;
+    --line-2:#EDF0EF;
+    --bg:#F7F8F7;
+    --card:#FFFFFF;
+
+    --electric:#B8860B;
+    --water:#2E7DAF;
+    --gas:#B4531F;
+    --waste:#4B6B3F;
+
+    --r:6px;
+    --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:14px;
+    line-height:1.45;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:900px;margin:0 auto;padding:14px 14px 40px}
+
+  /* ---------- header ---------- */
+  .bar{
+    background:var(--accent);
+    color:var(--accent-ink);
+    border-radius:var(--r) var(--r) 0 0;
+    padding:11px 14px;
+    display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  }
+  .bar-name{font-weight:700;font-size:16px;letter-spacing:-.01em;margin:0}
+  .bar-meta{
+    font-family:var(--mono);font-size:11px;letter-spacing:.02em;
+    opacity:.82;display:flex;gap:14px;flex-wrap:wrap;margin-left:auto;
+  }
+  .bar-meta b{font-weight:500}
+
+  .ident{
+    background:var(--card);border:1px solid var(--line);border-top:0;
+    border-radius:0 0 var(--r) var(--r);
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  }
+  .ident div{padding:9px 14px;border-right:1px solid var(--line-2)}
+  .ident div:last-child{border-right:0}
+  .lbl{
+    display:block;font-family:var(--mono);font-size:9.5px;font-weight:500;
+    letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:2px;
+  }
+  .val{font-size:13.5px;font-weight:500}
+  .val.mono{font-family:var(--mono);font-size:12.5px}
+
+  /* ---------- shared ---------- */
+  h2.sec{
+    font-size:11px;font-family:var(--mono);font-weight:600;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-3);margin:22px 0 8px;
+  }
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r)}
+
+  button{font-family:inherit;font-size:inherit;cursor:pointer}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  .btn{
+    background:var(--accent);color:var(--accent-ink);border:1px solid var(--accent);
+    padding:9px 18px;border-radius:var(--r);font-weight:600;letter-spacing:.01em;
+  }
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn-ghost{
+    background:transparent;color:var(--ink-2);border:1px solid var(--line);
+    padding:9px 16px;border-radius:var(--r);font-weight:500;
+  }
+  .btn-ghost:hover{border-color:var(--ink-3);color:var(--ink)}
+
+  /* ---------- home ---------- */
+  .banner{
+    display:flex;gap:10px;align-items:flex-start;
+    background:var(--accent-soft);border:1px solid var(--accent-line);
+    border-radius:var(--r);padding:10px 12px;margin:14px 0 0;
+  }
+  .banner .tick{
+    flex:none;width:16px;height:16px;border-radius:50%;background:var(--accent);
+    color:#fff;font-size:10px;line-height:16px;text-align:center;margin-top:1px;
+  }
+  .banner p{margin:0;font-size:13px}
+  .banner .ref{font-family:var(--mono);font-size:11.5px;color:var(--ink-2);margin-top:2px}
+
+  .tasks{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+  .task{
+    text-align:left;background:var(--card);border:1px solid var(--line);
+    border-radius:var(--r);padding:13px 14px;display:block;width:100%;
+    transition:border-color .12s ease, transform .12s ease;
+  }
+  .task:hover:not(:disabled){border-color:var(--accent);transform:translateY(-1px)}
+  .task:disabled{opacity:.5;cursor:not-allowed}
+  .task h3{margin:0 0 3px;font-size:14.5px;font-weight:600}
+  .task p{margin:0;font-size:12.5px;color:var(--ink-3);line-height:1.4}
+  .task .go{
+    display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--accent);margin-top:9px;font-weight:600;
+  }
+  .task:disabled .go{color:var(--ink-3)}
+
+  /* ---------- services ---------- */
+  .svc{
+    border-bottom:1px solid var(--line-2);padding:12px 14px 12px 18px;position:relative;
+  }
+  .svc:last-child{border-bottom:0}
+  .svc::before{
+    content:"";position:absolute;left:0;top:-1px;bottom:-1px;width:4px;background:var(--tone);
+  }
+  .svc:first-child::before{top:0;border-radius:var(--r) 0 0 0}
+  .svc:last-child::before{bottom:0;border-radius:0 0 0 var(--r)}
+  .svc-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .svc-name{font-weight:600;font-size:14.5px}
+  .svc-meter{font-family:var(--mono);font-size:11px;color:var(--ink-3);letter-spacing:.02em}
+  .chip{
+    font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.1em;
+    text-transform:uppercase;padding:2.5px 7px;border-radius:3px;
+    border:1px solid currentColor;color:var(--tone);
+  }
+  .chip.off{color:var(--ink-3)}
+
+  .seg{display:flex;margin-left:auto;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+  .seg button{
+    background:var(--card);border:0;border-left:1px solid var(--line);
+    padding:6px 12px;font-size:12.5px;font-weight:500;color:var(--ink-2);
+  }
+  .seg button:first-child{border-left:0}
+  .seg button:hover{background:var(--line-2)}
+  .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:600}
+  .seg button[aria-pressed="true"]:hover{background:var(--accent)}
+
+  .svc-detail{
+    display:none;margin-top:11px;padding-top:11px;border-top:1px dashed var(--line);
+    gap:14px;flex-wrap:wrap;align-items:flex-end;
+  }
+  .svc.changing .svc-detail{display:flex}
+  .field{display:flex;flex-direction:column;gap:4px}
+  .field.grow{flex:1;min-width:180px}
+  input[type=date],input[type=text],select,textarea{
+    font-family:var(--sans);font-size:13px;color:var(--ink);
+    border:1px solid var(--line);border-radius:var(--r);padding:7px 9px;background:#fff;width:100%;
+  }
+  input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
+  .err input[type=date]{border-color:#B3261E;box-shadow:0 0 0 3px rgba(179,38,30,.09)}
+  .err-msg{display:none;font-size:11.5px;color:#B3261E;font-family:var(--mono)}
+  .err .err-msg{display:block}
+
+  /* ---------- order ticket (signature) ---------- */
+  .ticket{
+    margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+    border-left:4px solid var(--accent);padding:13px 15px;
+  }
+  .ticket h3{
+    margin:0 0 9px;font-family:var(--mono);font-size:10.5px;font-weight:600;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);
+    display:flex;justify-content:space-between;gap:10px;
+  }
+  .ticket h3 span{color:var(--ink-2)}
+  .ticket ul{list-style:none;margin:0;padding:0;font-family:var(--mono);font-size:12.5px}
+  .ticket li{display:flex;gap:10px;padding:3.5px 0;border-bottom:1px dotted var(--line)}
+  .ticket li:last-child{border-bottom:0}
+  .ticket li .dot{width:7px;height:7px;border-radius:50%;background:var(--tone);flex:none;margin-top:6px}
+  .ticket li b{font-weight:600}
+  .ticket .empty{font-family:var(--mono);font-size:12.5px;color:var(--ink-3);margin:0}
+  .actions{display:flex;gap:10px;align-items:center;margin-top:16px;flex-wrap:wrap}
+  .actions .note{font-size:12px;color:var(--ink-3);margin-left:auto}
+
+  /* ---------- demo setup ---------- */
+  .setup{margin-top:34px;border-top:1px solid var(--line);padding-top:10px}
+  .setup summary{
+    list-style:none;cursor:pointer;font-family:var(--mono);font-size:10.5px;
+    letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);
+    display:flex;align-items:center;gap:7px;padding:4px 0;
+  }
+  .setup summary::-webkit-details-marker{display:none}
+  .setup summary:hover{color:var(--accent)}
+  .setup summary::before{content:"+";font-weight:600;font-size:13px;line-height:1}
+  .setup[open] summary::before{content:"–"}
+  .setup-body{padding:12px 0 4px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+  .swatches{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-top:6px}
+  .sw{width:22px;height:22px;border-radius:50%;border:1px solid rgba(0,0,0,.15);padding:0}
+  .sw[aria-pressed="true"]{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--ink)}
+  .url{
+    width:100%;font-family:var(--mono);font-size:11.5px;padding:8px 9px;resize:vertical;
+    border:1px solid var(--line);border-radius:var(--r);background:#fff;color:var(--ink-2);
+  }
+  .hint{font-size:11.5px;color:var(--ink-3);margin:6px 0 0;line-height:1.5}
+  .hint code{font-family:var(--mono);font-size:11px;background:var(--line-2);padding:1px 4px;border-radius:3px}
+
+  @media (max-width:560px){
+    .seg{margin-left:0;width:100%}
+    .seg button{flex:1}
+    .bar-meta{margin-left:0;width:100%}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- resident header (shared across pages) -->
+  <div class="bar">
+    <h1 class="bar-name" id="hName">—</h1>
+    <div class="bar-meta">
+      <span>ACCT <b id="hAcct">—</b></span>
+      <span>SINCE <b id="hSince">—</b></span>
+      <span id="hVerify">ID VERIFIED</span>
+    </div>
+  </div>
+  <div class="ident">
+    <div><span class="lbl">Service address</span><span class="val" id="hAddr">—</span></div>
+    <div><span class="lbl">Phone</span><span class="val mono" id="hPhone">—</span></div>
+    <div><span class="lbl">Email</span><span class="val" id="hEmail">—</span></div>
+  </div>
+
+  <!-- ===== HOME ===== -->
+  <section id="viewHome">
+    <div id="confirm" class="banner" hidden>
+      <span class="tick">✓</span>
+      <div>
+        <p><b>Service order submitted.</b> <span id="confirmText"></span></p>
+        <p class="ref" id="confirmRef"></p>
+      </div>
+    </div>
+
+    <h2 class="sec">What can we help with today?</h2>
+    <div class="tasks">
+      <button class="task" id="goUtilities">
+        <h3>Start or stop utilities</h3>
+        <p>Turn service on, off, or transfer it to a new address.</p>
+        <span class="go">Open →</span>
+      </button>
+      <button class="task" disabled>
+        <h3>Billing and payments</h3>
+        <p>Balance, payment arrangements, autopay enrollment.</p>
+        <span class="go">Demo only</span>
+      </button>
+      <button class="task" disabled>
+        <h3>Report an outage</h3>
+        <p>Log an outage and check restoration estimates.</p>
+        <span class="go">Demo only</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ===== UTILITIES ===== -->
+  <section id="viewUtil" hidden>
+    <h2 class="sec">Start or stop utilities</h2>
+    <div class="card" id="svcList"></div>
+
+    <div class="ticket">
+      <h3>Service order <span id="orderNo"></span></h3>
+      <div id="orderBody"><p class="empty">No changes selected yet.</p></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn" id="submitBtn">Submit service order</button>
+      <button class="btn-ghost" id="cancelBtn">Cancel</button>
+      <span class="note">Crew dispatch is confirmed by email within 1 business day.</span>
+    </div>
+  </section>
+
+  <!-- ===== DEMO SETUP ===== -->
+  <details class="setup">
+    <summary>Demo setup</summary>
+    <div class="setup-body">
+      <div class="grid">
+        <div class="field"><span class="lbl">Resident name</span><input type="text" data-cfg="name"></div>
+        <div class="field"><span class="lbl">Account number</span><input type="text" data-cfg="acct"></div>
+        <div class="field"><span class="lbl">Customer since</span><input type="text" data-cfg="since"></div>
+        <div class="field"><span class="lbl">Phone</span><input type="text" data-cfg="phone"></div>
+        <div class="field"><span class="lbl">Email</span><input type="text" data-cfg="email"></div>
+        <div class="field"><span class="lbl">Service address</span><input type="text" data-cfg="addr"></div>
+      </div>
+
+      <h2 class="sec">Current service status</h2>
+      <div class="grid" id="cfgServices"></div>
+
+      <h2 class="sec">Theme color</h2>
+      <div class="swatches">
+        <input type="color" class="sw" id="cfgColor" style="cursor:pointer">
+        <button class="sw" data-hex="#1F6F6B" style="background:#1F6F6B"></button>
+        <button class="sw" data-hex="#1B3A6B" style="background:#1B3A6B"></button>
+        <button class="sw" data-hex="#6B2D5C" style="background:#6B2D5C"></button>
+        <button class="sw" data-hex="#8A3324" style="background:#8A3324"></button>
+        <button class="sw" data-hex="#2F4858" style="background:#2F4858"></button>
+        <button class="sw" data-hex="#3D5A2B" style="background:#3D5A2B"></button>
+        <button class="sw" data-hex="#111417" style="background:#111417"></button>
+      </div>
+
+      <h2 class="sec">Embed URL</h2>
+      <textarea class="url" id="embedUrl" rows="3" readonly></textarea>
+      <div class="actions" style="margin-top:8px">
+        <button class="btn-ghost" id="copyUrl">Copy embed URL</button>
+        <button class="btn-ghost" id="copyTpl">Copy Genesys variable URL</button>
+        <button class="btn-ghost" id="resetCfg">Reset</button>
+      </div>
+      <p class="hint">Paste the embed URL into a script <b>Web Page</b> component. To drive it from live interaction data instead, use the Genesys variable URL and swap in your own script variables — anything passed on the query string wins over the values set here.</p>
+    </div>
+  </details>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var SERVICES = [
+    {key:"electric", name:"Electric",         tone:"var(--electric)", meter:"Meter E-{{m}} · Residential rate R-1"},
+    {key:"water",    name:"Water and sewer",  tone:"var(--water)",    meter:"Meter W-{{m}} · Residential rate W-2"},
+    {key:"gas",      name:"Natural gas",      tone:"var(--gas)",      meter:"Meter G-{{m}} · Residential rate G-1"},
+    {key:"waste",    name:"Waste and recycling", tone:"var(--waste)", meter:"Cart 96 gal · Weekly pickup, Thursday"}
+  ];
+
+  var DEFAULTS = {
+    name:"Marcus Webb",
+    acct:"4417-889231",
+    since:"Mar 2019",
+    phone:"(972) 555-0148",
+    email:"m.webb@example.com",
+    addr:"1420 Prosper Trail, Prosper, TX 75078",
+    theme:"#1F6F6B",
+    electric:"active", water:"active", gas:"inactive", waste:"active"
+  };
+
+  var cfg = {};
+  var changes = {};   // key -> {action:"start"|"stop", date:"", note:""}
+  var orderNo = "SO-" + Math.floor(100000 + Math.random()*899999);
+
+  /* ---------- config ---------- */
+  function loadCfg(){
+    var q = new URLSearchParams(location.search);
+    Object.keys(DEFAULTS).forEach(function(k){
+      var v = q.get(k);
+      cfg[k] = (v !== null && v !== "") ? v : DEFAULTS[k];
+    });
+    if(cfg.theme.charAt(0) !== "#") cfg.theme = "#" + cfg.theme;
+  }
+
+  function hexToRgb(h){
+    h = h.replace("#","");
+    if(h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+    var n = parseInt(h,16);
+    return [(n>>16)&255,(n>>8)&255,n&255];
+  }
+
+  function applyTheme(){
+    var rgb = hexToRgb(cfg.theme);
+    var lum = (0.299*rgb[0] + 0.587*rgb[1] + 0.114*rgb[2]) / 255;
+    var s = document.documentElement.style;
+    s.setProperty("--accent", cfg.theme);
+    s.setProperty("--accent-ink", lum > 0.62 ? "#15201F" : "#ffffff");
+    s.setProperty("--accent-soft", "rgba("+rgb.join(",")+",.10)");
+    s.setProperty("--accent-line", "rgba("+rgb.join(",")+",.28)");
+  }
+
+  function renderHeader(){
+    document.getElementById("hName").textContent  = cfg.name;
+    document.getElementById("hAcct").textContent  = cfg.acct;
+    document.getElementById("hSince").textContent = cfg.since;
+    document.getElementById("hAddr").textContent  = cfg.addr;
+    document.getElementById("hPhone").textContent = cfg.phone;
+    document.getElementById("hEmail").textContent = cfg.email;
+  }
+
+  /* ---------- service rows ---------- */
+  function meterNo(key){
+    var n = 0, str = cfg.acct + key;
+    for(var i=0;i<str.length;i++) n = (n*31 + str.charCodeAt(i)) % 100000;
+    return String(n).padStart(5,"0");
+  }
+
+  function tomorrow(){
+    var d = new Date(); d.setDate(d.getDate()+1);
+    return d.toISOString().slice(0,10);
+  }
+
+  function fmtDate(iso){
+    if(!iso) return "";
+    var p = iso.split("-");
+    return new Date(+p[0], +p[1]-1, +p[2]).toLocaleDateString("en-US",
+      {month:"short", day:"numeric", year:"numeric"});
+  }
+
+  function renderServices(){
+    var list = document.getElementById("svcList");
+    list.innerHTML = "";
+    SERVICES.forEach(function(s){
+      var on  = cfg[s.key] === "active";
+      var row = document.createElement("div");
+      row.className = "svc";
+      row.style.setProperty("--tone", s.tone);
+      row.dataset.key = s.key;
+      row.innerHTML =
+        '<div class="svc-head">' +
+          '<span class="svc-name">'+ s.name +'</span>' +
+          '<span class="chip'+ (on?"":" off") +'">'+ (on ? "Active" : "Not enrolled") +'</span>' +
+          '<span class="svc-meter">'+ s.meter.replace("{{m}}", meterNo(s.key)) +'</span>' +
+          '<div class="seg" role="group" aria-label="'+ s.name +' action">' +
+            '<button type="button" data-act="none"  aria-pressed="true">No change</button>' +
+            '<button type="button" data-act="'+ (on?"stop":"start") +'" aria-pressed="false">'+ (on?"Stop service":"Start service") +'</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="svc-detail">' +
+          '<label class="field"><span class="lbl">'+ (on?"Final service date":"Turn-on date") +'</span>' +
+            '<input type="date" value="'+ tomorrow() +'"><span class="err-msg">Pick a date</span></label>' +
+          '<label class="field grow"><span class="lbl">Note for the field crew</span>' +
+            '<input type="text" placeholder="'+ (on?"Gate code, pet on property, meter access…":"Access instructions, preferred arrival window…") +'"></label>' +
+        '</div>';
+
+      row.querySelectorAll(".seg button").forEach(function(b){
+        b.addEventListener("click", function(){
+          row.querySelectorAll(".seg button").forEach(function(x){ x.setAttribute("aria-pressed","false"); });
+          b.setAttribute("aria-pressed","true");
+          var act = b.dataset.act;
+          if(act === "none"){
+            row.classList.remove("changing","err");
+            delete changes[s.key];
+          }else{
+            row.classList.add("changing");
+            changes[s.key] = {action:act, date:row.querySelector('input[type=date]').value, note:""};
+          }
+          renderOrder();
+        });
+      });
+
+      row.querySelector('input[type=date]').addEventListener("input", function(e){
+        if(changes[s.key]){ changes[s.key].date = e.target.value; row.classList.remove("err"); renderOrder(); }
+      });
+      row.querySelector('input[type=text]').addEventListener("input", function(e){
+        if(changes[s.key]){ changes[s.key].note = e.target.value; renderOrder(); }
+      });
+
+      list.appendChild(row);
+    });
+  }
+
+  /* ---------- live order ticket ---------- */
+  function renderOrder(){
+    var body = document.getElementById("orderBody");
+    var keys = Object.keys(changes);
+    document.getElementById("orderNo").innerHTML = keys.length ? "<span>"+ orderNo +"</span>" : "";
+
+    if(!keys.length){
+      body.innerHTML = '<p class="empty">No changes selected yet.</p>';
+      document.getElementById("submitBtn").disabled = true;
+      return;
+    }
+    document.getElementById("submitBtn").disabled = false;
+
+    var ul = document.createElement("ul");
+    SERVICES.forEach(function(s){
+      var c = changes[s.key]; if(!c) return;
+      var li = document.createElement("li");
+      li.innerHTML = '<span class="dot" style="background:'+ s.tone +'"></span>' +
+        '<span><b>'+ (c.action === "start" ? "START" : "STOP") +'</b> '+ s.name.toLowerCase() +
+        ' — '+ (c.date ? fmtDate(c.date) : "date needed") +
+        (c.note ? '<br><span style="color:var(--ink-3)">'+ escapeHtml(c.note) +'</span>' : '') + '</span>';
+      ul.appendChild(li);
+    });
+    body.innerHTML = "";
+    body.appendChild(ul);
+  }
+
+  function escapeHtml(t){
+    return t.replace(/[&<>"]/g, function(c){
+      return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c];
+    });
+  }
+
+  /* ---------- navigation ---------- */
+  function show(view){
+    document.getElementById("viewHome").hidden = view !== "home";
+    document.getElementById("viewUtil").hidden = view !== "util";
+    if(view === "home") document.getElementById("confirm").hidden = !document.getElementById("confirm").dataset.filled;
+    window.scrollTo(0,0);
+  }
+
+  document.getElementById("goUtilities").addEventListener("click", function(){
+    document.getElementById("confirm").hidden = true;
+    show("util");
+  });
+
+  document.getElementById("cancelBtn").addEventListener("click", function(){
+    changes = {};
+    renderServices();
+    renderOrder();
+    show("home");
+  });
+
+  document.getElementById("submitBtn").addEventListener("click", function(){
+    var bad = false;
+    document.querySelectorAll(".svc.changing").forEach(function(row){
+      var c = changes[row.dataset.key];
+      if(!c || !c.date){ row.classList.add("err"); bad = true; }
+    });
+    if(bad) return;
+
+    var parts = [];
+    SERVICES.forEach(function(s){
+      var c = changes[s.key]; if(!c) return;
+      parts.push((c.action === "start" ? "Starting " : "Stopping ") + s.name.toLowerCase() + " on " + fmtDate(c.date));
+    });
+
+    var conf = document.getElementById("confirm");
+    document.getElementById("confirmText").textContent = parts.join(". ") + ".";
+    document.getElementById("confirmRef").textContent  = orderNo + " · " + cfg.name + " · " + cfg.addr;
+    conf.dataset.filled = "1";
+
+    // reflect the new state, then reset the form for the next order
+    Object.keys(changes).forEach(function(k){
+      cfg[k] = changes[k].action === "start" ? "active" : "inactive";
+    });
+    changes = {};
+    orderNo = "SO-" + Math.floor(100000 + Math.random()*899999);
+    renderServices();
+    renderOrder();
+    syncSetup();
+    show("home");
+  });
+
+  /* ---------- demo setup ---------- */
+  function buildUrl(){
+    var q = new URLSearchParams();
+    Object.keys(DEFAULTS).forEach(function(k){ q.set(k, cfg[k]); });
+    return location.origin + location.pathname + "?" + q.toString();
+  }
+
+  function templateUrl(){
+    return location.origin + location.pathname +
+      "?name={{Scripter.Customer Name}}" +
+      "&acct={{Account_Number}}" +
+      "&addr={{Service_Address}}" +
+      "&phone={{Scripter.Customer ANI}}" +
+      "&email={{Customer_Email}}" +
+      "&since={{Customer_Since}}" +
+      "&electric={{Electric_Status}}&water={{Water_Status}}&gas={{Gas_Status}}&waste={{Waste_Status}}" +
+      "&theme=" + encodeURIComponent(cfg.theme);
+  }
+
+  function syncSetup(){
+    document.querySelectorAll("[data-cfg]").forEach(function(i){ i.value = cfg[i.dataset.cfg]; });
+    document.querySelectorAll("#cfgServices select").forEach(function(sel){ sel.value = cfg[sel.dataset.svc]; });
+    document.getElementById("cfgColor").value = cfg.theme;
+    document.querySelectorAll(".sw[data-hex]").forEach(function(b){
+      b.setAttribute("aria-pressed", b.dataset.hex.toLowerCase() === cfg.theme.toLowerCase() ? "true" : "false");
+    });
+    document.getElementById("embedUrl").value = buildUrl();
+  }
+
+  function buildSetupServices(){
+    var host = document.getElementById("cfgServices");
+    host.innerHTML = "";
+    SERVICES.forEach(function(s){
+      var f = document.createElement("label");
+      f.className = "field";
+      f.innerHTML = '<span class="lbl">'+ s.name +'</span>' +
+        '<select data-svc="'+ s.key +'"><option value="active">Active</option><option value="inactive">Not enrolled</option></select>';
+      f.querySelector("select").addEventListener("change", function(e){
+        cfg[s.key] = e.target.value;
+        changes = {};
+        renderServices(); renderOrder(); syncSetup();
+      });
+      host.appendChild(f);
+    });
+  }
+
+  document.querySelectorAll("[data-cfg]").forEach(function(i){
+    i.addEventListener("input", function(e){
+      cfg[i.dataset.cfg] = e.target.value;
+      renderHeader(); renderServices(); renderOrder();
+      document.getElementById("embedUrl").value = buildUrl();
+    });
+  });
+
+  document.getElementById("cfgColor").addEventListener("input", function(e){
+    cfg.theme = e.target.value; applyTheme(); syncSetup();
+  });
+  document.querySelectorAll(".sw[data-hex]").forEach(function(b){
+    b.addEventListener("click", function(){ cfg.theme = b.dataset.hex; applyTheme(); syncSetup(); });
+  });
+
+  function copy(text, btn){
+    var done = function(){
+      var old = btn.textContent; btn.textContent = "Copied";
+      setTimeout(function(){ btn.textContent = old; }, 1400);
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done, function(){ fallback(text); done(); });
+    }else{ fallback(text); done(); }
+  }
+  function fallback(text){
+    var t = document.createElement("textarea");
+    t.value = text; document.body.appendChild(t); t.select();
+    try{ document.execCommand("copy"); }catch(e){}
+    document.body.removeChild(t);
+  }
+
+  document.getElementById("copyUrl").addEventListener("click", function(){ copy(buildUrl(), this); });
+  document.getElementById("copyTpl").addEventListener("click", function(){ copy(templateUrl(), this); });
+  document.getElementById("resetCfg").addEventListener("click", function(){
+    cfg = Object.assign({}, DEFAULTS);
+    changes = {};
+    applyTheme(); renderHeader(); renderServices(); renderOrder(); syncSetup();
+  });
+
+  /* ---------- boot ---------- */
+  loadCfg();
+  applyTheme();
+  renderHeader();
+  buildSetupServices();
+  renderServices();
+  renderOrder();
+  syncSetup();
+  show("home");
+})();
+</script>
+</body>
+</html>
