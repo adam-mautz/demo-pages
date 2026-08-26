@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Billing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --accent:#1F6F6B; --accent-ink:#fff;
+    --accent-soft:rgba(31,111,107,.10); --accent-line:rgba(31,111,107,.28);
+    --ink:#15201F; --ink-2:#4A5754; --ink-3:#7C8987;
+    --line:#DFE4E2; --line-2:#EDF0EF; --bg:#F7F8F7; --card:#FFF;
+    --due:#B3261E;
+    --r:6px;
+    --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:900px;margin:0 auto;padding:14px 14px 40px}
+
+  .bar{background:var(--accent);color:var(--accent-ink);border-radius:var(--r) var(--r) 0 0;padding:11px 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .bar-name{font-weight:700;font-size:16px;letter-spacing:-.01em;margin:0}
+  .bar-meta{font-family:var(--mono);font-size:11px;letter-spacing:.02em;opacity:.82;display:flex;gap:14px;flex-wrap:wrap;margin-left:auto}
+  .bar-meta b{font-weight:500}
+
+  .lbl{display:block;font-family:var(--mono);font-size:9.5px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:2px}
+  h2.sec{font-size:11px;font-family:var(--mono);font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin:22px 0 8px}
+  button{font-family:inherit;font-size:inherit;cursor:pointer}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .btn{background:var(--accent);color:var(--accent-ink);border:1px solid var(--accent);padding:9px 18px;border-radius:var(--r);font-weight:600}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn-ghost{background:transparent;color:var(--ink-2);border:1px solid var(--line);padding:9px 16px;border-radius:var(--r);font-weight:500}
+  .btn-ghost:hover{border-color:var(--ink-3);color:var(--ink)}
+
+  /* balance summary */
+  .summary{background:var(--card);border:1px solid var(--line);border-top:0;border-radius:0 0 var(--r) var(--r);display:grid;grid-template-columns:1.3fr 1fr 1fr;}
+  .summary > div{padding:12px 14px;border-right:1px solid var(--line-2)}
+  .summary > div:last-child{border-right:0}
+  .amount{font-family:var(--mono);font-size:26px;font-weight:600;letter-spacing:-.02em;line-height:1.1}
+  .amount.past{color:var(--due)}
+  .sub{font-size:12.5px;color:var(--ink-3);margin-top:3px}
+  .sub.past{color:var(--due);font-weight:500}
+  .val{font-size:13.5px;font-weight:500}
+  .val.mono{font-family:var(--mono);font-size:13px}
+
+  .banner{display:flex;gap:10px;align-items:flex-start;background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:var(--r);padding:10px 12px;margin-top:14px}
+  .banner .tick{flex:none;width:16px;height:16px;border-radius:50%;background:var(--accent);color:#fff;font-size:10px;line-height:16px;text-align:center;margin-top:1px}
+  .banner p{margin:0;font-size:13px}
+  .banner .ref{font-family:var(--mono);font-size:11.5px;color:var(--ink-2);margin-top:2px}
+
+  .tasks{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+  .task{text-align:left;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:13px 14px;width:100%;transition:border-color .12s,transform .12s}
+  .task:hover:not(:disabled){border-color:var(--accent);transform:translateY(-1px)}
+  .task:disabled{opacity:.5;cursor:not-allowed}
+  .task h3{margin:0 0 3px;font-size:14.5px;font-weight:600}
+  .task p{margin:0;font-size:12.5px;color:var(--ink-3)}
+  .task .go{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-top:9px;font-weight:600}
+  .task:disabled .go{color:var(--ink-3)}
+
+  /* history */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);font-weight:500;text-align:left;padding:9px 14px;border-bottom:1px solid var(--line)}
+  td{padding:9px 14px;border-bottom:1px solid var(--line-2)}
+  tr:last-child td{border-bottom:0}
+  td.num{font-family:var(--mono);text-align:right;white-space:nowrap}
+  th.num{text-align:right}
+  .tag{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:2px 6px;border-radius:3px;border:1px solid var(--line);color:var(--ink-3)}
+  .tag.paid{color:var(--accent);border-color:var(--accent-line);background:var(--accent-soft)}
+  .tag.open{color:var(--due);border-color:rgba(179,38,30,.3)}
+
+  /* payment form */
+  .opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+  .opt{position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:11px 13px;text-align:left}
+  .opt[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+  .opt .t{font-size:12.5px;color:var(--ink-3)}
+  .opt .a{font-family:var(--mono);font-size:17px;font-weight:600;margin-top:2px}
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-top:12px}
+  .field{display:flex;flex-direction:column;gap:4px;min-width:170px}
+  .field.grow{flex:1}
+  input[type=text],input[type=date],select{font-family:var(--sans);font-size:13px;color:var(--ink);border:1px solid var(--line);border-radius:var(--r);padding:7px 9px;background:#fff;width:100%}
+  input:focus,select:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
+  .money input{font-family:var(--mono)}
+  .err input{border-color:var(--due);box-shadow:0 0 0 3px rgba(179,38,30,.09)}
+  .err-msg{display:none;font-size:11.5px;color:var(--due);font-family:var(--mono)}
+  .err .err-msg{display:block}
+
+  .receipt{margin-top:14px;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:var(--r);padding:13px 15px}
+  .receipt h3{margin:0 0 9px;font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+  .receipt ul{list-style:none;margin:0;padding:0;font-family:var(--mono);font-size:12.5px}
+  .receipt li{display:flex;justify-content:space-between;gap:12px;padding:4px 0;border-bottom:1px dotted var(--line)}
+  .receipt li:last-child{border-bottom:0;font-weight:600;padding-top:7px}
+  .receipt li span:first-child{color:var(--ink-3)}
+  .receipt li:last-child span:first-child{color:var(--ink)}
+  .actions{display:flex;gap:10px;align-items:center;margin-top:16px;flex-wrap:wrap}
+  .actions .note{font-size:12px;color:var(--ink-3);margin-left:auto}
+
+  .setup{margin-top:34px;border-top:1px solid var(--line);padding-top:10px}
+  .setup summary{list-style:none;cursor:pointer;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);display:flex;align-items:center;gap:7px;padding:4px 0}
+  .setup summary::-webkit-details-marker{display:none}
+  .setup summary::before{content:"+";font-weight:600;font-size:13px;line-height:1}
+  .setup[open] summary::before{content:"–"}
+  .setup summary:hover{color:var(--accent)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;padding-top:12px}
+  .swatches{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-top:6px}
+  .sw{width:22px;height:22px;border-radius:50%;border:1px solid rgba(0,0,0,.15);padding:0}
+  .sw[aria-pressed="true"]{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--ink)}
+  .url{width:100%;font-family:var(--mono);font-size:11.5px;padding:8px 9px;resize:vertical;border:1px solid var(--line);border-radius:var(--r);background:#fff;color:var(--ink-2)}
+  .hint{font-size:11.5px;color:var(--ink-3);margin:6px 0 0;line-height:1.5}
+  .saved-tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);opacity:0;transition:opacity .25s ease}
+
+  @media (max-width:620px){
+    .summary{grid-template-columns:1fr}
+    .summary > div{border-right:0;border-bottom:1px solid var(--line-2)}
+    .bar-meta{margin-left:0;width:100%}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="bar">
+    <h1 class="bar-name" id="hName">—</h1>
+    <div class="bar-meta">
+      <span>ACCT <b id="hAcct">—</b></span>
+      <span id="hAuto">AUTOPAY OFF</span>
+    </div>
+  </div>
+  <div class="summary">
+    <div>
+      <span class="lbl">Current balance</span>
+      <div class="amount" id="hBal">$0.00</div>
+      <div class="sub" id="hDue">—</div>
+    </div>
+    <div>
+      <span class="lbl">Last payment</span>
+      <div class="val mono" id="hLast">—</div>
+      <div class="sub" id="hLastDate">—</div>
+    </div>
+    <div>
+      <span class="lbl">Billing cycle</span>
+      <div class="val" id="hCycle">—</div>
+      <div class="sub">Paperless billing</div>
+    </div>
+  </div>
+
+  <!-- ===== HOME ===== -->
+  <section id="viewHome">
+    <div id="confirm" class="banner" hidden>
+      <span class="tick">✓</span>
+      <div>
+        <p><b>Payment posted.</b> <span id="confirmText"></span></p>
+        <p class="ref" id="confirmRef"></p>
+      </div>
+    </div>
+
+    <h2 class="sec">What can we help with today?</h2>
+    <div class="tasks">
+      <button class="task" id="goPay">
+        <h3>Make a payment</h3>
+        <p>Take a one-time payment on a saved or new method.</p>
+        <span class="go">Open →</span>
+      </button>
+      <button class="task" disabled>
+        <h3>Payment arrangement</h3>
+        <p>Split the balance into scheduled installments.</p>
+        <span class="go">Demo only</span>
+      </button>
+      <button class="task" disabled>
+        <h3>Enroll in autopay</h3>
+        <p>Draft the balance automatically each cycle.</p>
+        <span class="go">Demo only</span>
+      </button>
+    </div>
+
+    <h2 class="sec">Recent activity</h2>
+    <div class="card">
+      <table>
+        <thead><tr><th>Date</th><th>Description</th><th>Status</th><th class="num">Amount</th></tr></thead>
+        <tbody id="hist"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===== PAYMENT ===== -->
+  <section id="viewPay" hidden>
+    <h2 class="sec">Make a payment</h2>
+    <div class="opts" id="amtOpts"></div>
+
+    <div class="row" id="otherRow" hidden>
+      <label class="field money err-host"><span class="lbl">Payment amount</span>
+        <input type="text" id="otherAmt" inputmode="decimal" placeholder="0.00">
+        <span class="err-msg">Enter an amount greater than zero</span>
+      </label>
+    </div>
+
+    <div class="row">
+      <label class="field grow"><span class="lbl">Payment method</span>
+        <select id="method">
+          <option value="Visa ending 4417">Visa ending 4417 (saved)</option>
+          <option value="Checking ending 8820">Checking ending 8820 (saved)</option>
+          <option value="New card">New card — collect over secure pause</option>
+        </select>
+      </label>
+      <label class="field"><span class="lbl">Post date</span>
+        <input type="date" id="postDate">
+      </label>
+    </div>
+
+    <div class="receipt">
+      <h3>Payment summary</h3>
+      <ul>
+        <li><span>Account</span><span id="rAcct">—</span></li>
+        <li><span>Method</span><span id="rMethod">—</span></li>
+        <li><span>Post date</span><span id="rDate">—</span></li>
+        <li><span>Balance after payment</span><span id="rAfter">—</span></li>
+        <li><span>Amount to charge</span><span id="rAmt">$0.00</span></li>
+      </ul>
+    </div>
+
+    <div class="actions">
+      <button class="btn" id="submitBtn">Charge payment</button>
+      <button class="btn-ghost" id="cancelBtn">Cancel</button>
+      <span class="note">A receipt is emailed as soon as the payment posts.</span>
+    </div>
+  </section>
+
+  <!-- ===== DEMO SETUP ===== -->
+  <details class="setup">
+    <summary>Demo setup</summary>
+    <div class="grid">
+      <div class="field"><span class="lbl">Customer name</span><input type="text" data-cfg="name"></div>
+      <div class="field"><span class="lbl">Account number</span><input type="text" data-cfg="acct"></div>
+      <div class="field"><span class="lbl">Current balance</span><input type="text" data-cfg="balance"></div>
+      <div class="field"><span class="lbl">Past due amount</span><input type="text" data-cfg="pastdue"></div>
+      <div class="field"><span class="lbl">Due date</span><input type="date" data-cfg="due"></div>
+      <div class="field"><span class="lbl">Minimum due</span><input type="text" data-cfg="minimum"></div>
+      <div class="field"><span class="lbl">Last payment</span><input type="text" data-cfg="lastamt"></div>
+      <div class="field"><span class="lbl">Last payment date</span><input type="date" data-cfg="lastdate"></div>
+      <div class="field"><span class="lbl">Billing cycle</span><input type="text" data-cfg="cycle"></div>
+      <div class="field"><span class="lbl">Autopay</span>
+        <select data-cfg="autopay"><option value="off">Off</option><option value="on">On</option></select>
+      </div>
+    </div>
+
+    <h2 class="sec">Theme color</h2>
+    <div class="swatches">
+      <input type="color" class="sw" id="cfgColor" style="cursor:pointer">
+      <button class="sw" data-hex="#1F6F6B" style="background:#1F6F6B"></button>
+      <button class="sw" data-hex="#1B3A6B" style="background:#1B3A6B"></button>
+      <button class="sw" data-hex="#6B2D5C" style="background:#6B2D5C"></button>
+      <button class="sw" data-hex="#8A3324" style="background:#8A3324"></button>
+      <button class="sw" data-hex="#2F4858" style="background:#2F4858"></button>
+      <button class="sw" data-hex="#3D5A2B" style="background:#3D5A2B"></button>
+      <button class="sw" data-hex="#111417" style="background:#111417"></button>
+    </div>
+
+    <h2 class="sec">Embed URL</h2>
+    <textarea class="url" id="embedUrl" rows="3" readonly></textarea>
+    <div class="actions" style="margin-top:8px">
+      <button class="btn-ghost" id="copyUrl">Copy embed URL</button>
+      <button class="btn-ghost" id="copyTpl">Copy Genesys variable URL</button>
+      <button class="btn-ghost" id="resetCfg">Reset</button>
+      <span class="saved-tag" id="savedTag"></span>
+    </div>
+    <p class="hint">These setup values are saved in this browser and survive a refresh. Query string values always win over them, so paste the embed URL into a script <b>Web Page</b> component when you need the values to travel — a script iframe gets its own storage and won't see what you saved here.</p>
+  </details>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  function iso(offset){ var d=new Date(); d.setDate(d.getDate()+offset); return d.toISOString().slice(0,10); }
+
+  var DEFAULTS = {
+    name:"Marcus Webb", acct:"4417-889231",
+    balance:"284.63", pastdue:"96.20", minimum:"45.00",
+    due:iso(9), lastamt:"142.10", lastdate:iso(-31),
+    cycle:"Monthly · closes the 18th", autopay:"off",
+    theme:"#1F6F6B"
+  };
+
+  var cfg={}, choice="full", customAmt=0, confNo=nextConf();
+  function nextConf(){ return "PMT-" + Math.floor(100000+Math.random()*899999); }
+
+  function num(v){ var n=parseFloat(String(v).replace(/[^0-9.\-]/g,"")); return isNaN(n)?0:n; }
+  function usd(n){ return "$" + n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  function fmtDate(s){
+    if(!s) return "—";
+    var p=s.split("-"); if(p.length!==3) return s;
+    return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+  }
+  function daysOut(s){
+    var p=s.split("-"); if(p.length!==3) return 0;
+    return Math.round((new Date(+p[0],+p[1]-1,+p[2]) - new Date().setHours(0,0,0,0))/86400000);
+  }
+
+  var STORE="gc-billing-demo";
+
+  // precedence: query string > saved setup > defaults
+  function loadCfg(){
+    var saved={};
+    try{ var raw=localStorage.getItem(STORE); if(raw) saved=JSON.parse(raw)||{}; }
+    catch(e){ saved={}; }
+
+    var q=new URLSearchParams(location.search);
+    Object.keys(DEFAULTS).forEach(function(k){
+      var v=q.get(k);
+      if(v!==null&&v!=="")            cfg[k]=v;
+      else if(saved[k]!==undefined)   cfg[k]=saved[k];
+      else                            cfg[k]=DEFAULTS[k];
+    });
+    if(cfg.theme.charAt(0)!=="#") cfg.theme="#"+cfg.theme;
+  }
+
+  function saveCfg(){
+    try{ localStorage.setItem(STORE,JSON.stringify(cfg)); flashSaved(); }
+    catch(e){ flashSaved("Can't save in this browser"); }
+  }
+  function clearCfg(){ try{ localStorage.removeItem(STORE); }catch(e){} }
+
+  var flashTimer;
+  function flashSaved(msg){
+    var el=document.getElementById("savedTag"); if(!el) return;
+    el.textContent = msg || "Saved to this browser";
+    el.style.opacity="1";
+    clearTimeout(flashTimer);
+    flashTimer=setTimeout(function(){ el.style.opacity="0"; },1800);
+  }
+
+  function hexToRgb(h){
+    h=h.replace("#",""); if(h.length===3) h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+    var n=parseInt(h,16); return [(n>>16)&255,(n>>8)&255,n&255];
+  }
+  function applyTheme(){
+    var rgb=hexToRgb(cfg.theme), lum=(0.299*rgb[0]+0.587*rgb[1]+0.114*rgb[2])/255, s=document.documentElement.style;
+    s.setProperty("--accent",cfg.theme);
+    s.setProperty("--accent-ink", lum>0.62?"#15201F":"#ffffff");
+    s.setProperty("--accent-soft","rgba("+rgb.join(",")+",.10)");
+    s.setProperty("--accent-line","rgba("+rgb.join(",")+",.28)");
+  }
+
+  /* ---------- header + history ---------- */
+  function renderHeader(){
+    var bal=num(cfg.balance), past=num(cfg.pastdue), d=daysOut(cfg.due);
+    document.getElementById("hName").textContent=cfg.name;
+    document.getElementById("hAcct").textContent=cfg.acct;
+    document.getElementById("hAuto").textContent= cfg.autopay==="on" ? "AUTOPAY ON" : "AUTOPAY OFF";
+
+    var el=document.getElementById("hBal");
+    el.textContent=usd(bal);
+    el.className="amount"+(past>0?" past":"");
+
+    var sub=document.getElementById("hDue");
+    if(bal<=0){ sub.className="sub"; sub.textContent="Paid in full — nothing due"; }
+    else if(past>0){ sub.className="sub past"; sub.textContent=usd(past)+" past due · balance due "+fmtDate(cfg.due); }
+    else if(d<0){ sub.className="sub past"; sub.textContent="Due "+fmtDate(cfg.due)+" · "+Math.abs(d)+" days late"; }
+    else { sub.className="sub"; sub.textContent="Due "+fmtDate(cfg.due)+" · in "+d+" days"; }
+
+    document.getElementById("hLast").textContent=usd(num(cfg.lastamt));
+    document.getElementById("hLastDate").textContent=fmtDate(cfg.lastdate);
+    document.getElementById("hCycle").textContent=cfg.cycle;
+  }
+
+  function renderHistory(){
+    var bal=num(cfg.balance), past=num(cfg.pastdue);
+    var rows=[
+      {d:cfg.due, desc:"Statement — current cycle", tag: bal>0?"open":"paid", label: bal>0?"Open":"Paid", amt:bal>0?bal-0:0},
+      {d:cfg.lastdate, desc:"Payment received", tag:"paid", label:"Posted", amt:-num(cfg.lastamt)}
+    ];
+    if(past>0) rows.splice(1,0,{d:cfg.due, desc:"Late fee assessed", tag:"open", label:"Open", amt:9.50});
+    var tb=document.getElementById("hist"); tb.innerHTML="";
+    rows.forEach(function(r){
+      var tr=document.createElement("tr");
+      tr.innerHTML='<td>'+fmtDate(r.d)+'</td><td>'+r.desc+'</td>'+
+        '<td><span class="tag '+r.tag+'">'+r.label+'</span></td>'+
+        '<td class="num">'+(r.amt<0?"−"+usd(Math.abs(r.amt)):usd(r.amt))+'</td>';
+      tb.appendChild(tr);
+    });
+  }
+
+  /* ---------- payment options ---------- */
+  function optionSet(){
+    var bal=num(cfg.balance), past=num(cfg.pastdue), min=num(cfg.minimum);
+    var set=[{key:"full", t:"Full balance", a:bal}];
+    if(past>0) set.push({key:"past", t:"Past due only", a:past});
+    if(min>0 && min<bal) set.push({key:"min", t:"Minimum due", a:min});
+    set.push({key:"other", t:"Other amount", a:null});
+    return set;
+  }
+
+  function amountFor(k){
+    if(k==="full") return num(cfg.balance);
+    if(k==="past") return num(cfg.pastdue);
+    if(k==="min")  return num(cfg.minimum);
+    return customAmt;
+  }
+
+  function renderOpts(){
+    var host=document.getElementById("amtOpts"); host.innerHTML="";
+    var set=optionSet();
+    if(!set.some(function(o){return o.key===choice;})) choice=set[0].key;
+    set.forEach(function(o){
+      var b=document.createElement("button");
+      b.type="button"; b.className="opt"; b.setAttribute("aria-pressed", o.key===choice?"true":"false");
+      b.innerHTML='<div class="t">'+o.t+'</div><div class="a">'+(o.a===null?"Enter":usd(o.a))+'</div>';
+      b.addEventListener("click", function(){
+        choice=o.key; renderOpts(); renderReceipt();
+        if(choice==="other") document.getElementById("otherAmt").focus();
+      });
+      host.appendChild(b);
+    });
+    document.getElementById("otherRow").hidden = choice!=="other";
+  }
+
+  function renderReceipt(){
+    var amt=amountFor(choice), bal=num(cfg.balance);
+    document.getElementById("rAcct").textContent=cfg.acct;
+    document.getElementById("rMethod").textContent=document.getElementById("method").value;
+    document.getElementById("rDate").textContent=fmtDate(document.getElementById("postDate").value);
+    document.getElementById("rAmt").textContent=usd(amt);
+    var after=bal-amt;
+    document.getElementById("rAfter").textContent = after<=0 ? usd(0)+" (credit "+usd(Math.abs(after))+")" : usd(after);
+    document.getElementById("submitBtn").disabled = amt<=0;
+  }
+
+  /* ---------- nav ---------- */
+  function show(v){
+    document.getElementById("viewHome").hidden = v!=="home";
+    document.getElementById("viewPay").hidden  = v!=="pay";
+    window.scrollTo(0,0);
+  }
+
+  document.getElementById("goPay").addEventListener("click", function(){
+    document.getElementById("confirm").hidden=true;
+    renderOpts(); renderReceipt(); show("pay");
+  });
+
+  document.getElementById("cancelBtn").addEventListener("click", function(){
+    choice="full"; customAmt=0; document.getElementById("otherAmt").value="";
+    renderOpts(); renderReceipt(); show("home");
+  });
+
+  document.getElementById("otherAmt").addEventListener("input", function(e){
+    customAmt=num(e.target.value);
+    e.target.closest(".field").classList.remove("err");
+    renderReceipt();
+  });
+  document.getElementById("method").addEventListener("change", renderReceipt);
+  document.getElementById("postDate").addEventListener("change", renderReceipt);
+
+  document.getElementById("submitBtn").addEventListener("click", function(){
+    var amt=amountFor(choice);
+    if(amt<=0){ document.getElementById("otherAmt").closest(".field").classList.add("err"); return; }
+
+    var bal=num(cfg.balance), past=num(cfg.pastdue);
+    var method=document.getElementById("method").value;
+    var date=document.getElementById("postDate").value;
+
+    cfg.balance = Math.max(0, bal-amt).toFixed(2);
+    cfg.pastdue = Math.max(0, past-amt).toFixed(2);
+    cfg.lastamt = amt.toFixed(2);
+    cfg.lastdate = date;
+
+    var conf=document.getElementById("confirm");
+    document.getElementById("confirmText").textContent =
+      usd(amt)+" charged to "+method+", posting "+fmtDate(date)+". Remaining balance "+usd(num(cfg.balance))+".";
+    document.getElementById("confirmRef").textContent = confNo+" · "+cfg.name+" · acct "+cfg.acct;
+    conf.hidden=false;
+
+    confNo=nextConf(); choice="full"; customAmt=0;
+    document.getElementById("otherAmt").value="";
+    renderHeader(); renderHistory(); renderOpts(); renderReceipt(); syncSetup();
+    show("home");
+  });
+
+  /* ---------- demo setup ---------- */
+  function buildUrl(){
+    var q=new URLSearchParams();
+    Object.keys(DEFAULTS).forEach(function(k){ q.set(k,cfg[k]); });
+    return location.origin+location.pathname+"?"+q.toString();
+  }
+  function templateUrl(){
+    return location.origin+location.pathname+
+      "?name={{Scripter.Customer Name}}&acct={{Account_Number}}"+
+      "&balance={{Current_Balance}}&pastdue={{Past_Due}}&minimum={{Minimum_Due}}"+
+      "&due={{Due_Date}}&lastamt={{Last_Payment_Amount}}&lastdate={{Last_Payment_Date}}"+
+      "&cycle={{Billing_Cycle}}&autopay={{Autopay_Status}}"+
+      "&theme="+encodeURIComponent(cfg.theme);
+  }
+  function syncSetup(){
+    document.querySelectorAll("[data-cfg]").forEach(function(i){ i.value=cfg[i.dataset.cfg]; });
+    document.getElementById("cfgColor").value=cfg.theme;
+    document.querySelectorAll(".sw[data-hex]").forEach(function(b){
+      b.setAttribute("aria-pressed", b.dataset.hex.toLowerCase()===cfg.theme.toLowerCase()?"true":"false");
+    });
+    document.getElementById("embedUrl").value=buildUrl();
+  }
+
+  document.querySelectorAll("[data-cfg]").forEach(function(i){
+    i.addEventListener("input", function(e){
+      cfg[i.dataset.cfg]=e.target.value;
+      renderHeader(); renderHistory(); renderOpts(); renderReceipt();
+      document.getElementById("embedUrl").value=buildUrl();
+      saveCfg();
+    });
+  });
+  document.getElementById("cfgColor").addEventListener("input", function(e){ cfg.theme=e.target.value; applyTheme(); syncSetup(); saveCfg(); });
+  document.querySelectorAll(".sw[data-hex]").forEach(function(b){
+    b.addEventListener("click", function(){ cfg.theme=b.dataset.hex; applyTheme(); syncSetup(); saveCfg(); });
+  });
+
+  function copy(text,btn){
+    var done=function(){ var o=btn.textContent; btn.textContent="Copied"; setTimeout(function(){btn.textContent=o;},1400); };
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done,function(){ fallback(text); done(); });
+    } else { fallback(text); done(); }
+  }
+  function fallback(text){
+    var t=document.createElement("textarea"); t.value=text; document.body.appendChild(t); t.select();
+    try{ document.execCommand("copy"); }catch(e){} document.body.removeChild(t);
+  }
+  document.getElementById("copyUrl").addEventListener("click", function(){ copy(buildUrl(),this); });
+  document.getElementById("copyTpl").addEventListener("click", function(){ copy(templateUrl(),this); });
+  document.getElementById("resetCfg").addEventListener("click", function(){
+    clearCfg();
+    cfg=Object.assign({},DEFAULTS); choice="full"; customAmt=0;
+    document.getElementById("otherAmt").value="";
+    applyTheme(); renderHeader(); renderHistory(); renderOpts(); renderReceipt(); syncSetup();
+    document.getElementById("confirm").hidden=true;
+    flashSaved("Reset to defaults");
+  });
+
+  /* ---------- boot ---------- */
+  loadCfg();
+  applyTheme();
+  document.getElementById("postDate").value=iso(0);
+  renderHeader(); renderHistory(); renderOpts(); renderReceipt(); syncSetup();
+  show("home");
+})();
+</script>
+</body>
+</html>
