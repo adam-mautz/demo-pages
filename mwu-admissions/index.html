@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admissions Counselor Workspace</title>
+<style>
+  :root{
+    --bg:#eef1f5; --card:#ffffff; --ink:#1d2433; --muted:#5d6779; --line:#d9dee7;
+    --navy:#1f3a5f; --done:#2f8f5b; --done-bg:#e3f3ea; --todo:#8a93a3; --todo-bg:#f1f3f6;
+    --warn:#a35b00; --warn-bg:#fff2dc; --alert:#b3261e; --alert-bg:#fde7e5; --link:#1f5fae;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);font:14px/1.4 "Segoe UI",Roboto,Helvetica,Arial,sans-serif;padding:12px}
+  .wrap{max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+  .bar{background:var(--navy);color:#fff;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+  .bar h1{font-size:15px;margin:0;font-weight:600;letter-spacing:.2px}
+  .bar .auth{font-size:12px;background:rgba(255,255,255,.14);padding:3px 8px}
+  .card{background:var(--card);border:1px solid var(--line);padding:14px}
+  .label{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:0 0 3px}
+  .profile{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+  .profile img{width:112px;height:112px;object-fit:cover;border:1px solid var(--line);flex:none;background:var(--todo-bg)}
+  .who{flex:1;min-width:220px}
+  .who h2{margin:0;font-size:22px}
+  .who .contact{color:var(--muted);margin:2px 0 10px}
+  .facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+  .v{font-weight:600}
+  .status{display:inline-block;background:var(--navy);color:#fff;font-weight:600;padding:3px 10px;font-size:13px}
+  .banner{background:var(--warn-bg);color:var(--warn);border-left:4px solid var(--warn);padding:8px 12px;font-weight:600}
+  .ids{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+  .ids .v{font-family:Consolas,Menlo,monospace;font-size:14px}
+  .copy{font:inherit;font-size:12px;color:var(--link);background:none;border:0;padding:0;cursor:pointer}
+  .tl{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;margin-top:6px}
+  .st{padding:9px 8px;min-height:72px;display:flex;flex-direction:column;gap:2px}
+  .st .ic{font-size:15px;font-weight:700}
+  .st .nm{font-weight:600;font-size:13px;line-height:1.2}
+  .st .dt{font-size:12px}
+  .st.done{background:var(--done-bg);color:var(--done)}
+  .st.now{background:var(--navy);color:#fff;outline:3px solid #9fc0e8;outline-offset:-3px}
+  .st.next{background:var(--todo-bg);color:var(--todo)}
+  .present{margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .present .now-txt{flex:1;min-width:240px}
+  .days{font-weight:700;padding:6px 12px;font-size:15px}
+  .days.urgent{background:var(--alert-bg);color:var(--alert)}
+  .days.ok{background:var(--done-bg);color:var(--done)}
+  .days.closed{background:var(--todo-bg);color:var(--muted)}
+  .row2{display:grid;grid-template-columns:1.2fr 1fr;gap:10px}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px}
+  .kv span:nth-child(odd){color:var(--muted)}
+  .links{display:flex;flex-direction:column;gap:6px}
+  .btn{display:block;text-align:left;background:#fff;border:1px solid var(--link);color:var(--link);padding:8px 10px;font:inherit;font-weight:600;cursor:pointer;text-decoration:none}
+  .btn.primary{background:var(--link);color:#fff}
+  .btn:focus-visible,.copy:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
+  .toast{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:8px 14px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none}
+  .toast.show{opacity:1}
+  [hidden]{display:none!important}
+  @media (max-width:640px){
+    body{padding:8px}
+    .facts,.ids{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .tl{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .row2{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="bar">
+    <h1>Admissions Counselor Workspace</h1>
+    <span class="auth" id="auth"></span>
+  </div>
+
+  <div class="card profile">
+    <img id="photo" alt="">
+    <div class="who">
+      <h2 id="name"></h2>
+      <div class="contact" id="contact"></div>
+      <div class="facts">
+        <div><p class="label">Program</p><div class="v" data-f="program"></div></div>
+        <div><p class="label">Campus</p><div class="v" data-f="campus"></div></div>
+        <div><p class="label">Entry term</p><div class="v" data-f="entry_term"></div></div>
+        <div><p class="label">App status</p><span class="status" data-f="app_status"></span></div>
+        <div><p class="label">App owner</p><div class="v" data-f="app_owner"></div></div>
+        <div><p class="label">Last outreach</p><div class="v" data-f="last_outreach"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="banner" id="ownerBanner" hidden></div>
+
+  <div class="card ids">
+    <div><p class="label">SIS ID</p><div class="v" data-f="sis_id"></div><button class="copy" data-copy="sis_id">Copy</button></div>
+    <div><p class="label" id="casLabel">CAS ID</p><div class="v" data-f="cas_id"></div><button class="copy" data-copy="cas_id">Copy</button></div>
+    <div><p class="label">Application ID</p><div class="v" data-f="application_id"></div><button class="copy" data-copy="application_id">Copy</button></div>
+    <div><p class="label">Date of birth</p><div class="v" id="dob"></div></div>
+  </div>
+
+  <div class="card">
+    <p class="label">Admissions timeline</p>
+    <div class="tl" id="timeline"></div>
+    <div class="present">
+      <div class="now-txt" id="present"></div>
+      <div class="days" id="days" hidden></div>
+    </div>
+  </div>
+
+  <div class="row2">
+    <div class="card">
+      <p class="label">Deposit &amp; outreach</p>
+      <div class="kv">
+        <span>Admit date</span><span data-f="admit_date"></span>
+        <span>Deposit due</span><span data-f="deposit_due_date"></span>
+        <span>Deposit amount</span><span data-f="deposit_amount"></span>
+        <span>Outreach attempts</span><span data-f="outreach_attempts"></span>
+        <span>Next protocol step</span><span data-f="next_protocol_step"></span>
+      </div>
+    </div>
+    <div class="card">
+      <p class="label">Quick links</p>
+      <div class="links">
+        <a class="btn primary" id="slateRecord" target="_blank" rel="noopener">Open student record in Slate ↗</a>
+        <a class="btn" id="slateApp" target="_blank" rel="noopener">Open application in Slate ↗</a>
+        <button class="btn" id="sendSms" type="button">Send deposit link by SMS</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* Defaults = Jack Mautz demo student. Any URL query parameter with the same name overrides a default,
+   so the Genesys script can pass its variables in the Web Page component URL. */
+const DEFAULTS = {
+  first_name:"Jack", last_name:"Mautz", phone:"+19096149364", email:"jack.mautz@example.com", dob:"03141999",
+  program:"Physician Assistant Studies", campus:"Glendale, AZ", entry_term:"Summer 2027",
+  app_status:"Admitted", app_stage_num:"4", app_owner:"Rachel Alvarez", app_owner_available:"false",
+  sis_id:"MWU-2271843", cas_type:"CASPA", cas_id:"4417702956", application_id:"PA-GL-27-01386",
+  admit_date:"Sep 25, 2026", deposit_due_date:"Oct 25, 2026", days_to_deposit:"",
+  deposit_amount:"$1,000", outreach_attempts:"3 (2 voicemails, 1 SMS)", last_outreach:"Oct 16 · Voicemail",
+  next_protocol_step:"Day 27 final reminder",
+  stage1_date:"Jun 2", stage2_date:"Aug 6", stage3_date:"Sep 3", stage4_date:"Sep 25", stage5_date:"", stage6_date:"May 2027",
+  slate_record_guid:"5f1c2a9e-0d4b-4c7e-9a31-7b2e6d8f4a10",
+  slate_base:"https://slate.example.edu", photo_url:"jack-mautz.jpg", channel:"Inbound voice", verified:"phone + DOB"
+};
+const STAGES = ["Application","Materials","Interview","Admitted","Deposit","Orientation"];
+
+const q = new URLSearchParams(location.search);
+const d = {};
+for (const k in DEFAULTS) {
+  const v = q.get(k);
+  // Treat empty or unresolved {{placeholders}} from the script as "not provided"
+  d[k] = (v !== null && v.trim() !== "" && !/^\{\{.*\}\}$/.test(v.trim())) ? v.trim() : DEFAULTS[k];
+}
+
+const $ = id => document.getElementById(id);
+const fmtPhone = p => { const n = (p||"").replace(/\D/g,"").replace(/^1(?=\d{10}$)/,""); return n.length===10 ? `(${n.slice(0,3)}) ${n.slice(3,6)}-${n.slice(6)}` : p; };
+const fmtDob = s => /^\d{8}$/.test(s) ? `${s.slice(0,2)}/${s.slice(2,4)}/${s.slice(4)}` : s;
+function parseDate(s){
+  if(!s) return null;
+  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+  const dt = iso ? new Date(+iso[1], +iso[2]-1, +iso[3]) : new Date(s);
+  return isNaN(dt) ? null : dt;
+}
+const shortDate = dt => dt.toLocaleDateString("en-US",{month:"short",day:"numeric"});
+
+// Simple fields
+document.querySelectorAll("[data-f]").forEach(el => el.textContent = d[el.dataset.f] || "—");
+$("name").textContent = `${d.first_name} ${d.last_name}`;
+$("contact").textContent = [fmtPhone(d.phone), d.email].filter(Boolean).join(" · ");
+$("auth").textContent = `${d.channel} · Verified by ${d.verified} ✓`;
+$("dob").textContent = fmtDob(d.dob);
+$("casLabel").textContent = d.cas_type ? `CAS ID (${d.cas_type})` : "CAS ID";
+$("photo").src = d.photo_url; $("photo").alt = `${d.first_name} ${d.last_name}`;
+$("photo").onerror = function(){ this.onerror=null; this.removeAttribute("src"); };
+
+// Owner banner
+if (d.app_owner_available.toLowerCase() === "false" && d.app_owner) {
+  const b = $("ownerBanner"); b.hidden = false;
+  b.textContent = `App owner ${d.app_owner} is unavailable — you're covering this student.`;
+}
+
+// Deposit countdown (live from deposit_due_date; falls back to days_to_deposit)
+const due = parseDate(d.deposit_due_date);
+let daysLeft = null;
+if (due) { const today = new Date(); today.setHours(0,0,0,0); daysLeft = Math.round((due - today)/86400000); }
+else if (d.days_to_deposit !== "" && !isNaN(+d.days_to_deposit)) daysLeft = +d.days_to_deposit;
+
+// Timeline
+const stage = Math.min(6, Math.max(1, parseInt(d.app_stage_num,10) || 1));
+const tl = $("timeline");
+STAGES.forEach((nm, i) => {
+  const n = i + 1;
+  let date = d[`stage${n}_date`];
+  if (n === 5 && !date && due) date = `Due ${shortDate(due)}`;
+  const state = n < stage ? "done" : n === stage ? "now" : "next";
+  const icon = state === "done" ? "✓" : state === "now" ? "● NOW" : "○";
+  const box = document.createElement("div");
+  box.className = `st ${state}`;
+  box.setAttribute("aria-current", state === "now" ? "step" : "false");
+  box.innerHTML = `<span class="ic"></span><span class="nm"></span><span class="dt"></span>`;
+  box.children[0].textContent = icon; box.children[1].textContent = nm; box.children[2].textContent = date || "";
+  tl.appendChild(box);
+});
+
+// Present state + countdown (only meaningful while Admitted and waiting on deposit)
+const presentEl = $("present"), daysEl = $("days");
+if (stage === 4) {
+  presentEl.innerHTML = `<strong>Present state:</strong> `;
+  const admit = parseDate(d.admit_date);
+  presentEl.append(`${d.app_status}${admit ? " " + shortDate(admit) : ""} · deposit not yet received`
+    + (due ? ` · 30-day window closes ${shortDate(due)}` : ""));
+  if (daysLeft !== null) {
+    daysEl.hidden = false;
+    if (daysLeft < 0) { daysEl.className = "days closed"; daysEl.textContent = "Deposit window closed"; }
+    else { daysEl.className = `days ${daysLeft <= 7 ? "urgent" : "ok"}`; daysEl.textContent = daysLeft === 1 ? "1 day left to deposit" : `${daysLeft} days left to deposit`; }
+  }
+} else {
+  presentEl.innerHTML = `<strong>Present state:</strong> `;
+  presentEl.append(`${STAGES[stage-1]} (${d.app_status})`);
+}
+
+// Slate quick links (confirm the real URL patterns with the Slate admin)
+const base = d.slate_base.replace(/\/+$/,"");
+$("slateRecord").href = `${base}/manage/lookup/record?id=${encodeURIComponent(d.slate_record_guid)}`;
+$("slateApp").href = `${base}/manage/lookup/application?id=${encodeURIComponent(d.application_id)}`;
+
+// Toast + copy + SMS (SMS is a demo prop until it's wired to a data action)
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"),2200); }
+function copyText(txt){
+  const fallback = () => { const ta=document.createElement("textarea"); ta.value=txt; ta.style.position="fixed"; ta.style.opacity="0"; document.body.appendChild(ta); ta.select(); try{document.execCommand("copy");}catch(e){} ta.remove(); };
+  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(txt).catch(fallback); else fallback();
+  toast(`Copied ${txt}`);
+}
+document.querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click", () => copyText(d[b.dataset.copy])));
+$("sendSms").addEventListener("click", () => toast(`Deposit link sent to ${fmtPhone(d.phone)}`));
+</script>
+</body>
+</html>
